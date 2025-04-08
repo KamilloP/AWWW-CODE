@@ -1,0 +1,37 @@
+{% if folder.availability %}
+  <li>
+    <span class="folder {{folder.pk}}">{{ folder.name }}</span>
+    <span class="insert" style="display: none;">
+      | <a href="" onclick="insertFile('{{folder.pk}}', '{{folder.name}}');return false;">Dodaj plik</a> | 
+      <a href="" onclick="insertFolder('{{folder.pk}}', '{{folder.name}}');return false;"> Dodaj folder</a> |
+    </span>
+    <span class="delete" style="display: none;">
+      {% if folder.up %}
+        <a href="" onclick="removeFolder('{{folder.pk}}');return false;">| Usuń |</a>
+      {% endif %}
+    </span>
+    <ul class="nested">
+      <!-- Files -->
+      {% for file in folder.file_set.all %}
+        {% if file.availability %}
+          <li>
+            <span class="file {{file.pk}}"><a class="file-id" 
+            title="Click to choose current file" href="" 
+            style="text-decoration: none; color: inherit;"
+            onclick="chooseCurrentFile('{{file.pk}}');return false;">{{file.name}}</a>
+              <span class="delete" style="display: none;">
+                <a href="" onclick="removeFile('{{file.pk}}');return false;">| Usuń |</a>
+              </span>
+            </span>
+          </li>
+        {% endif %}
+      {% endfor %}
+      <!-- Render child folders recursively -->
+    {% for child_folder in folder.folder_set.all %}
+      {% with folder=child_folder %}
+        {% include 'folder.html' %}
+      {% endwith %}
+    {% endfor %}
+    </ul>
+  </li>
+{% endif %}

@@ -1,0 +1,579 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" href="{% static '/css/styles.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/codemirror.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/codemirror.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/javascript/javascript.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/clike/clike.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/theme/dracula.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/edit/closetag.js"></script>
+
+<style type="text/css">
+  .CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}
+  dt {font-family: monospace; color: #666;}
+</style>
+
+<div class="wrapper">
+
+  <!-- Menu -->
+
+  <div class="item menu">
+    <ul>
+      {% if user.is_authenticated %}
+        <li><a href="">User: {{ user.get_username }} ({{user.first_name}})</a></li>
+        <li><a href="{% url 'logout' %}?next={{ request.path }}">Wyloguj</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}?next={{ request.path }}">Zaloguj</a></li>
+      {% endif %}
+      <li>
+        <a title="Click to choose insertion"
+          href="#" onclick="showInsertChoose();return false;">
+          Dodaj
+        </a>
+      </li>
+      <li>
+        <a title="Click to choose deletion"
+          href="#" onclick="showDeleteChoose();return false;">
+          Usuń
+        </a>
+      </li>
+      <li>
+        <a title="Click to save"
+          href="#" onclick="saveFile();return false;">
+          Zapisz
+        </a>
+      </li>
+      <li>
+        <a title="Click to compile"
+          href="#" onclick="compileFile();return false;">
+          Kompiluj
+        </a>
+      </li>
+      <li>
+        <a title="Click to download"
+          href="#" onclick="downloadFile();return false;">
+          Pobierz
+        </a>
+      </li>
+      <li style="float: right">
+        <button id="dark-mode-button">Ciemna tryb</button>
+        <button id="light-mode-button">Jasny tryb</button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Files -->
+
+  <div class="item files">
+    <div class="file-header">Pliki</div>
+    <ul id="myUL" style="height: 70%;">
+      {% for root in user.folder_set.all %}
+        {% if not root.up %}
+          {% with folder=root %}
+            {% include 'folder.html' %}
+          {% endwith %}
+        {% endif %}
+      {% endfor %}
+    </ul>
+    <div style="border-top: 1px solid azure; "></div>
+  </div>
+
+  <!-- Program text -->
+
+  <div class="item code"><p></p></div>
+
+  <!-- Code section -->
+
+  <div class="item snippet">
+    <p>
+      {% if file and file.owner == user %}
+        {{file.name}}
+      {% endif %}
+    </p>
+    <textarea spellcheck="false" style="white-space: pre-wrap;" readonly></textarea>
+  </div>
+  
+  <!-- Compilator options -->
+  
+  <div class="item compilator-options">
+    <ul>
+      <li><button id="option1">STANDARD</button></li>
+      <li><button id="option2">OPTYMALIZACJE</button></li>
+      <li><button id="option3">PROCESOR</button></li>
+      <li><button id="option4">ZALEŻNE</button></li>
+    </ul>
+  </div>
+  <div class="item compilator-options-result">
+    <div class="option-result" id="option1-result">
+      <input type="radio" id="STD1" name="STD" value="C89">
+      <label for="STD1">C89</label><br>
+      <input type="radio" id="STD2" name="STD" value="C99">
+      <label for="STD2">C99</label><br>
+      <input type="radio" id="STD3" name="STD" value="C11">
+      <label for="STD3">C11</label><br>
+    </div>
+    <div class="option-result" id="option2-result">
+      <input type="checkbox" id="OPT-option1" name="OPT-option1" value="--opt-code-speed">
+      <label for="OPT-option1">--opt-code-speed</label><br>
+      <input type="checkbox" id="OPT-option2" name="OPT-option2" value="--finline-functions">
+      <label for="OPT-option2">--finline-functions</label><br>
+      <input type="checkbox" id="OPT-option3" name="OPT-option3" value="--fomit-frame-pointer">
+      <label for="OPT-option3">--fomit-frame-pointer</label><br>
+    </div>
+    <div class="option-result" id="option3-result">
+      <input type="radio" id="CPU-1" name="CPU" value="MCS51">
+      <label for="CPU-1">MCS51</label><br>
+      <input type="radio" id="CPU-2" name="CPU" value="Z80">
+      <label for="CPU-2">Z80</label><br>
+      <input type="radio" id="CPU-3" name="CPU" value="STM8">
+      <label for="CPU-3">STM8</label><br>
+    </div>
+    <div class="option-result" id="option4-result">
+      <!-- MCS51 -->
+      <div id="DEP1">
+        <input type="checkbox" id="DEP1-option1" name="DEP1-option1" value="--fno-std-crt0">
+        <label for="DEP1-option1">--fno-std-crt0</label><br>
+        <input type="checkbox" id="DEP1-option2" name="DEP1-option2" value="--fno-cinit">
+        <label for="DEP1-option2">--fno-cinit</label><br>
+        <input type="checkbox" id="DEP1-option3" name="DEP1-option3" value="--fno-peep">
+        <label for="DEP1-option3">--fno-peep</label><br>
+      </div>
+      <!-- Z80 -->
+      <div id="DEP2">
+        <input type="checkbox" id="DEP2-option1" name="DEP2-option1" value="--fno-peep">
+        <label for="DEP2-option1">--fno-peep</label><br>
+        <input type="checkbox" id="DEP2-option2" name="DEP2-option2" value="--fvolatile">
+        <label for="DEP2-option2">--fvolatile</label><br>
+        <input type="checkbox" id="DEP2-option3" name="DEP2-option3" value="--funsigned-bitfields">
+        <label for="DEP2-option3">--funsigned-bitfields</label><br>
+      </div>
+      <!-- STM8 -->
+      <div id="DEP3">
+        <input type="checkbox" id="DEP3-option1" name="DEP3-option1" value="--all-callee-saves">
+        <label for="DEP3-option1">--all-callee-saves</label><br>
+        <input type="checkbox" id="DEP3-option2" name="DEP3-option2" value="--disable-warning 85">
+        <label for="DEP3-option2">--disable-warning 85</label><br>
+        <input type="checkbox" id="DEP3-option3" name="DEP3-option3" value="--no-peep">
+        <label for="DEP3-option3">--no-peep</label><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Pokazywanie opcji kompilatora
+
+  for (let i = 1; i <= 3; i++) {
+    $("#option" + i).click(
+      function() {
+        for (let j = 1; j <= 4; j++) {
+          $("#option" + j + "-result").css("display", "none");
+        }
+        $("#option" + i + "-result").css("display", "block");
+      }
+    );
+  }
+  $("#option4").click(
+    function() {
+      for (let i = 1; i <= 3; i++) {
+        $("#option" + i + "-result").css("display", "none");
+      }
+      for (let i = 1; i <= 3; i++) {
+        $("#DEP" + i).css("display", "none");
+      }
+      $("#option4-result").css("display", "block");
+      let cpu = document.querySelector('input[name="CPU"]:checked').value;
+      let i = 0;
+      if (cpu == 'MCS51') {i = 1;}
+      if (cpu == 'Z80') {i = 2;}
+      if (cpu == 'STM8') {i = 3;}
+
+      $("#DEP" + i).css("display", "block");
+    }
+  );
+
+  // Ustawienie podstawowych elementów
+  var toggler = document.getElementsByClassName("folder");
+
+  for (let i = 0; i < toggler.length; i++) {
+    toggler[i].addEventListener("click", function() {
+      this.parentElement.querySelector(".nested").classList.toggle("active");
+      this.classList.toggle("folder-down");
+    });
+  }
+
+  // Zmiana widoku strony (na ciemny/jasny)
+
+  document.getElementById('light-mode-button').onclick = function() {
+    document.getElementById('light-mode-button').style.display = 'none';
+    document.getElementById('dark-mode-button').style.display = 'block';
+    var r = document.querySelector(':root');
+    r.style.setProperty('--background', 'rgb(213, 207, 166)');
+    r.style.setProperty('--border', 'rgb(66, 19, 22)');
+    r.style.setProperty('--header', 'rgb(14, 47, 88)');
+    r.style.setProperty('--elements', 'rgb(6, 28, 55)');
+    r.style.setProperty('--font', 'rgb(0, 0, 0)');
+  }
+  document.getElementById('dark-mode-button').onclick = function() {
+    document.getElementById('dark-mode-button').style.display = 'none';
+    document.getElementById('light-mode-button').style.display = 'block';
+    var r = document.querySelector(':root');
+    r.style.setProperty('--background', 'rgb(6, 25, 35) ');
+    r.style.setProperty('--border', 'rgb(192, 177, 178)');
+    r.style.setProperty('--header', 'rgb(42, 5, 5)');
+    r.style.setProperty('--elements', 'rgb(53, 8, 19)');
+    r.style.setProperty('--font', 'rgb(255, 255, 255)');
+  }
+
+  // csrf_token
+
+  $.ajaxSetup({
+    data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+  });
+
+  // Klasy
+
+  class UserFile {
+    constructor(pk, name, description, content) {
+      this.pk = pk;
+      this.name = name;
+      this.description = description;
+      this.content = content;
+    }
+  }
+
+  // Zmienne
+
+  var current_file;
+  var compiled_file_name;
+  var assm;
+  var inserting = false;
+  var deleting = false;
+  var editor;
+  {
+    let $textarea = $('<textarea>').val("");
+    $textarea.attr('id', "editor");
+    $(".item.code").append($textarea);
+    $(".item.code > textarea").attr("spellcheck", "false");
+    editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: "clike",
+      theme: "dracula",
+      lineNumbers: true,
+      autoCloseTags: true,
+      extraKeys: {
+        "Tab": function(cm){
+            cm.replaceSelection("   " , "end");
+        }
+      }
+    });
+    editor.setSize("100%", "95.5%");
+    editor.getWrapperElement().style.borderTop = "1px solid red";
+    editor.getWrapperElement().style.position = "relative";
+    editor.getWrapperElement().style.top = "-3%";
+    $(editor.getWrapperElement()).hide();
+  }
+
+  // Funkcje
+
+  function showInsertChoose() {
+    $(".item.files form").remove();
+    if (inserting) {
+      $(".insert").hide();
+      inserting = false;
+    }
+    else {
+      inserting = true;
+      $(".insert").show();
+    }
+    deleting = false;
+    $(".delete").hide();
+  }
+
+  function showDeleteChoose() {
+    $(".item.files form").remove();
+    if (deleting) {
+      $(".delete").hide();
+      deleting = false;
+    }
+    else {
+      deleting = true;
+      $(".delete").show();
+    }
+    inserting = false;
+    $(".insert").hide();
+  }
+
+  function saveFile() {
+    if ($(".item.code > textarea").length == 0) {
+      alert("Nie wybrano pliku!");
+    }
+    else {
+      alert(editor.getValue());
+      $.ajax({
+        url: "{% url 'saveFile' %}",
+        type: 'POST',
+        dataType: 'json',
+        data: {
+          'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val(),
+          "file_id": current_file.pk,
+          "content": editor.getValue(),
+        },
+        success: function(response) {
+          if (response.status == 'success' && response.pk == current_file.pk){
+            alert("Sukces!");
+          }
+          else {
+            alert("An error has occurred:" + response.status);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          alert('Error: ', errorThrown);
+        }
+      });
+    }
+  }
+
+  function compileFile() {
+    if (current_file) {
+      $.ajax({
+        url: "{% url 'compileFile' %}",
+        type: 'POST',
+        dataType: 'json',
+        data: {
+          'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val(),
+          "pk": current_file.pk,
+        },
+        success: function(response) {
+          if (response.status == 'compiled' && response.assm && response.return) {
+            compiled_file_name = current_file.name;
+            assm = response.assm;
+            returnCode = response.return;
+            $(".item.snippet > p").text(current_file.name);
+            $(".item.snippet > textarea").val(assm);
+          }
+          else {
+            alert("An error has occurred:" + response.status);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          alert('Error: ', errorThrown);
+        }
+      });
+      alert("Nie uwzględnia opcji!");
+    }
+    else {
+      alert("Nie wybrano pliku do kompilacji!");
+    }
+  }
+
+  function downloadFile() {
+    if (assm && compiled_file_name) {
+      var content = assm;
+      var name = compiled_file_name;
+      if (returnCode == 0) {
+        content = content.substring(0, str.length - 2) + '.asm';
+      }
+
+      const element = document.createElement('a');
+      const file = new Blob([content], { type: 'text/plain' });
+      element.download = name;
+      element.href = URL.createObjectURL(file);
+      element.click();
+      URL.revokeObjectURL(element.href);
+    }
+    else {
+      alert("Nie ma skompilowanego pliku!");
+    }
+  }
+
+  function chooseCurrentFile(id) {
+    $.ajax({
+      url: "{% url 'fileInfo' %}",
+      type: 'POST',
+      dataType: 'json',
+      data: {
+        'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val(),
+        "file_id": id,
+      },
+      success: function(response) {
+        if (response.status == 'success' && response.pk == id){
+          current_file = new UserFile(
+            response.pk,
+            response.name,
+            response.description,
+            response.content
+          );
+          $(".item.code > p").text(current_file.name);
+          $(editor.getWrapperElement()).show();
+          editor.setValue(current_file.content);
+        }
+        else {
+          alert("An error has occurred:" + response.status);
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.error('Error: ', errorThrown);
+      }
+    });
+  }
+
+  function removeFile(id) {
+    deleting = false;
+    $(".delete").hide();
+    $.ajax({
+      url: "{% url 'deleteFile' %}",
+      type: 'POST',
+      dataType: 'json',
+      data: {
+        'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val(),
+        "file_id": id,
+      },
+      success: function(response) {
+        if (response.status == 'success' && response.pk == id){
+          $(".file." + id).parent().remove();
+        }
+        else {
+          alert("An error has occurred:" + response.status);
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.error('Error: ', errorThrown);
+      }
+    });
+  }
+
+  function removeFolder(id) {
+    deleting = false;
+    $(".delete").hide();
+    $.ajax({
+      url: "{% url 'deleteFolder' %}",
+      type: 'POST',
+      dataType: 'json',
+      data: {
+        'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val(),
+        "folder_id": id,
+      },
+      success: function(response) {
+        if (response.status == 'success' && response.pk == id){
+          $(".folder." + id).parent().remove();
+        }
+        else {
+          alert("An error has occurred:" + response.status);
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.error('Error: ', errorThrown);
+      }
+    });
+  }
+
+  function insertFolder(id, name) {
+    inserting = false;
+    $(".insert").hide();
+    $(".item.files").append('<form id="insert_folder_form" action="{% url "postFolderForm" %}" method="POST" style="margin-bottom: 0px;">');
+    $("#insert_folder_form").append('{% csrf_token %}');
+    $("#insert_folder_form").append('<div class="appm">Dodaj folder do ' + name + '</div>');
+    $("#insert_folder_form").append('<input type="text" placeholder="Nazwa" name="folder-name" id="folder-name" maxlength="255"/>');
+    $("#insert_folder_form").append('<br><input type="text" placeholder="Opcjonalny opis" name="folder-description" id="folder-description" maxlength="255" value="" style="word-break: break-word;"/>');
+    $("#insert_folder_form").append('<br><input type="submit" id="savebutton" value="Dodaj" />');
+    $("#insert_folder_form").append("</form>");
+    $('#insert_folder_form').on('submit', function(event){
+        event.preventDefault();
+        create_post_folder(id);
+    });
+  }
+
+  function create_post_folder(id) {
+    $.ajax({
+      url : "{% url 'postFolderForm' %}", // the endpoint
+      type : "POST", // http method
+      data : {
+        name: $('#folder-name').val(),
+        description: $('#folder-description').val(),
+        pk: id,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      }, // data sent with the post request
+      success : function(response) {
+          if (response.status == 'success' && response.pk == id) {
+            $("#insert_folder_form").remove();
+            $(".folder." + id).parent().children(".nested").append("<li></li>");
+            $(".folder." + id).parent().children(".nested").children("li:last").
+              append('<span class="folder ' + response.new_id + '">' + response.name + '</span>');
+            $(".folder." + id).parent().children(".nested").children("li:last").
+              append('<span class="insert" style="display: none;"> | <a href="" onclick="insertFile(' + response.new_id + ', ' + response.name + ');return false;">Dodaj plik</a> |'  + '<a href="" onclick="insertFolder(' + response.new_id + ', ' + response.name + ');return false;">Dodaj folder</a> |</span>');
+            $(".folder." + id).parent().children(".nested").children("li:last").
+              append('<span class="delete" style="display: none;"> | <a href="" onclick="removeFolder(' + response.new_id + ');return false;">| Usuń |</a></span>');
+            $(".folder." + id).parent().children(".nested").children("li:last").
+              append('<ul class="nested"></ul>');
+            var temp_toggler = document.getElementsByClassName("folder " + response.new_id);
+            temp_toggler[0].addEventListener("click", function() {
+              this.parentElement.querySelector(".nested").classList.toggle("active");
+              this.classList.toggle("folder-down");
+            });
+          }
+          else {
+            alert("Error");
+          }
+      },
+      error : function(xhr,errmsg, err) {
+        alert("Error: " + err);
+      }
+    });
+  }
+
+  function insertFile(id, name) {
+    inserting = false;
+    $(".insert").hide();
+    $(".item.files").append('<form id="insert_file_form" action="{% url "postFileForm" %}" method="POST" style="margin-bottom: 0px;">');
+    $("#insert_file_form").append('{% csrf_token %}');
+    $("#insert_file_form").append('<div class="appm">Dodaj plik do ' + name + '</div>');
+    $("#insert_file_form").append('<input type="text" placeholder="Nazwa" name="file-name" id="file-name" maxlength="255"/>');
+    $("#insert_file_form").append('<br><input type="text" placeholder="Opcjonalny opis" name="file-description" id="file-description" maxlength="255" value="" style="word-break: break-word;"/>');
+    $("#insert_file_form").append('<br><input type="submit" id="savebutton" value="Dodaj" />');
+    $("#insert_file_form").append("</form>");
+    $('#insert_file_form').on('submit', function(event){
+        event.preventDefault();
+        create_post_file(id);
+    });
+  }
+
+  function create_post_file(id) {
+    $.ajax({
+      url : "{% url 'postFileForm' %}", // the endpoint
+      type : "POST", // http method
+      data : {
+        name: $('#file-name').val(),
+        description: $('#file-description').val(),
+        pk: id,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      }, // data sent with the post request
+      success : function(response) {
+          if (response.status == 'success' && response.pk == id) {
+            $("#insert_file_form").remove();
+
+            $(".folder." + id).parent().children(".nested").prepend("<li></li>");
+            $(".folder." + id).parent().children(".nested").children("li:first").
+              append('<span class="file ' + response.new_id + '">');
+            $(".folder." + id).parent().children(".nested").children("li:first").children("span:first").
+              append('<a class="file-id" title="Click to choose current file" href="" style="text-decoration: none; color: inherit;" onclick="chooseCurrentFile(' + response.new_id + ');return false;">' + response.name + '</a>');
+            $(".folder." + id).parent().children(".nested").children("li:first").children("span:first").
+              append('<span class="delete" style="display: none;">' + '<a href="" onclick="removeFile(' + response.new_id + ');return false;">| Usuń |</a></span></span></li>');
+          }
+          else {
+            alert("Error");
+          }
+      },
+      error : function(xhr,errmsg, err) {
+        alert("Error: " + err);
+      }
+    });
+  }
+</script>
+
+{% endblock %}

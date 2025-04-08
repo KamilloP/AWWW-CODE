@@ -1,0 +1,435 @@
+:root {
+  --background: rgb(213, 207, 166);
+  --border: rgb(66, 19, 22);
+  --header: rgb(14, 47, 88);
+  --elements: rgb(6, 28, 55);
+  --font: rgb(0, 0, 0);
+  /* Light mode
+    rgb(213, 207, 166)
+    rgb(66, 19, 22)
+    rgb(14, 47, 88)
+    rgb(6, 28, 55)
+    rgb(0, 0, 0)
+  */
+  /* Dark mode
+    rgb(6, 25, 35)
+    rgb(192, 177, 178)
+    rgb(42, 5, 5)
+    rgb(53, 8, 19)
+    rgb(255, 255, 255)
+  */
+}
+
+body {
+  color: var(--font);
+}
+
+/* Grid */
+
+@media screen and (max-width: 500px) {
+
+  .wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  
+    font-family: Arial, Helvetica, sans-serif;
+  
+    display: grid;
+    border-style: solid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(3, 1fr) [files-row] repeat(5, 1fr) [code-row] repeat(10, 1fr) [snippet-row] repeat(8, 1fr) [options-row] 1fr [result-row] repeat(4, 1fr) [end-row];
+    gap: 1px;
+    justify-items: stretch;
+    align-items: stretch;
+  }
+}
+
+@media screen and (min-width: 500px) {
+
+  .wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  
+    font-family: Arial, Helvetica, sans-serif;
+  
+    display: grid;
+    border-style: solid;
+    grid-template-columns: 2fr [code-col] 1fr [snippet-col] 1fr [end-col];
+    grid-template-rows: repeat(3, 1fr) [code-row] repeat(31, 1fr) [options-row] 1fr [result-row] repeat(11, 1fr) [end-row];
+    gap: 1px;
+    justify-items: stretch;
+    align-items: stretch;
+  }
+}
+
+@media screen and (min-width: 850px) {
+
+  .wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  
+    font-family: Arial, Helvetica, sans-serif;
+  
+    display: grid;
+    border-style: solid;
+    grid-template-columns: repeat(3, 1fr) [code-col] repeat(4, 1fr) [snippet-col] repeat(3, 1fr) [end-col];
+    grid-template-rows: repeat(3, 1fr) [code-row] repeat(31, 1fr) [options-row] 1fr [result-row] repeat(11, 1fr) [end-row];
+    gap: 1px;
+    justify-items: stretch;
+    align-items: stretch;
+  }
+}
+
+/* Grid items */
+
+.item {
+  background-color: var(--background);
+  box-shadow:0 0 0 2px var(--border);
+}
+
+@media screen and (max-width: 500px) {
+
+  .menu {
+    margin: 0;
+    padding: 0;
+    grid-column: 1 / 2;
+    grid-row: 1 / files-row;
+  }
+  
+  .files {
+    grid-column: 1 / 2;
+    grid-row: files-row / code-row;
+  }
+  
+  .code {
+    grid-column: 1 / 2;
+    grid-row: code-row / snippet-row;
+  }
+  
+  .snippet {
+    grid-column: 1 / 2;
+    grid-row: snippet-row / options-row;
+  }
+  
+  .compilator-options {
+    grid-column: 1 / 2;
+    grid-row: options-row / result-row;
+  }
+  
+  .compilator-options-result {
+    grid-column: 1 / 2;
+    grid-row: result-row / end-row;
+  }
+}
+
+@media screen and (min-width: 500px) {
+
+  .menu {
+    margin: 0;
+    padding: 0;
+    grid-column: 1 / end-col;
+    grid-row: 1 / code-row;
+  }
+  
+  .files {
+    grid-column: 1 / code-col;
+    grid-row: code-row / end-row;
+  }
+  
+  .code {
+    grid-column: code-col / snippet-col;
+    grid-row: code-row / options-row;
+  }
+  
+  .snippet {
+    grid-column: snippet-col / end-col;
+    grid-row: code-row / options-row;
+  }
+  
+  .compilator-options {
+    grid-column: code-col / end-col;
+    grid-row: options-row / result-row;
+  }
+  
+  .compilator-options-result {
+    grid-column: code-col / end-col;
+    grid-row: result-row / end-row;
+  }
+}
+
+@media screen and (max-width: 500px) {
+}
+
+/* Code and snippet */
+
+.code p, .snippet p {
+  margin-top: 0%;
+  height: 4%;
+  background-color: aliceblue;
+}
+
+.snippet textarea {
+  margin-top: -3.5%;
+  height: 96%;
+}
+
+.code textarea, .snippet textarea {
+  color: var(--font);
+  width: 100%;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;         /* Opera/IE 8+ */
+  overflow: scroll;
+  white-space: nowrap;
+  background-color: var(--background);
+  outline: none;
+  resize: none;
+}
+
+/* Files - Tree View */
+
+.file-header {
+  color: black;
+  width: 100%;
+  border: 1px solid seashell;
+  background-color:azure; 
+  text-align: center;
+  /* overflow: scroll; */
+}
+
+@media screen and (min-width: 500px) {
+  .file-header {
+    font-size: 1.5em; 
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .file-header {
+    font-size: 1.1em; 
+  }
+}
+
+.files ul, #myUL {
+  list-style-type: none;
+}
+
+#myUL {
+  margin: 0;
+  padding: 0px;
+  height: 70%;
+  overflow-y: scroll;
+}
+
+.folder {
+  cursor: pointer;
+  user-select: none; /* Prevent text selection */
+  -webkit-user-select: none;
+}
+
+.folder::before {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  font-size: inherit;
+  line-height: 1;
+  text-align: center;
+  font-family: 'Font Awesome 5 Free';
+  font-style: normal;
+  vertical-align: middle;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  content: "\f07b";
+}
+
+@media screen and (min-width: 500px) {
+  .folder::before {
+    font-weight: 900;
+    margin-right: 6px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .folder::before {
+    font-weight: 300;
+    margin-right: 3px;
+  }
+}
+
+.folder-down::before {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  font-size: inherit;
+  line-height: 1;
+  text-align: center;
+  font-family: 'Font Awesome 5 Free';
+  font-style: normal;
+  vertical-align: middle;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  content: "\f07c";
+}
+
+@media screen and (min-width: 500px) {
+  .folder-down::before {
+    font-weight: 900;
+    margin-right: 6px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .folder-down::before {
+    font-weight: 300;
+    margin-right: 3px;
+  }
+}
+
+/* Hide the nested list */
+.nested {
+  display: none;
+}
+
+/* Show the nested list when the user clicks on the folder (with JavaScript) */
+.active {
+  display: block;
+}
+
+.file::before {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  font-size: inherit;
+  line-height: 1;
+  text-align: center;
+  font-family: 'Font Awesome 5 Free';
+  font-style: normal;
+  vertical-align: middle;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  content: "\f15b";
+}
+
+@media screen and (min-width: 500px) {
+  .file::before {
+    font-weight: 900;
+    margin-right: 6px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .file::before {
+    font-weight: 300;
+    margin-right: 3px;
+  }
+}
+
+/* Options and menu */
+
+.menu ul, .compilator-options ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--header);
+}
+
+.menu li, .compilator-options li {
+  float: left;
+}
+.menu button {
+  display: block;
+  background-color: var(--elements);
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  height: 100%;
+}
+
+.menu li a, .menu li button, #light-mode-button, #dark-mode-button {
+  display: block;
+  background-color: var(--elements);
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  height: 100%;
+}
+
+@media screen and (min-width: 500px) {
+  .menu li a, .menu li button, #light-mode-button, #dark-mode-button {
+    padding: 14px 16px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .menu li a, .menu li button, #light-mode-button, #dark-mode-button {
+    padding: 7px 8px;
+  }
+}
+
+#light-mode-button {
+  display: none;
+}
+
+#light-mode-button, #dark-mode-button {
+  cursor: pointer;
+}
+
+.compilator-options li button {
+  cursor: pointer;
+  display: block;
+  background-color: var(--elements);
+  border: 1px solid black;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  height: 100%;
+}
+
+@media screen and (min-width: 500px) {
+  .compilator-options li button {
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .compilator-options li button {
+    border-top-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+}
+
+@media screen and (min-width: 850px) {
+  .compilator-options li button {
+    padding: 4px 30px;
+  }
+}
+
+@media screen and (max-width: 850px) {
+  .compilator-options li button {
+    padding: 2px 10px;
+  }
+}
+
+.menu li a:hover, .menu li button:hover, .compilator-options li a:hover , .compilator-options li button:hover {
+  background-color: #282323;
+}
+
+/* Result */
+
+.option-result {
+  display: none;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+}
+
